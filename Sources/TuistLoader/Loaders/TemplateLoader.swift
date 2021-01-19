@@ -1,7 +1,6 @@
 import Foundation
 import ProjectDescription
 import TSCBasic
-import TuistCore
 import TuistGraph
 import TuistSupport
 
@@ -9,8 +8,9 @@ public protocol TemplateLoading {
     /// Load `TuistScaffold.Template` at given `path`
     /// - Parameters:
     ///     - path: Path of template manifest file `name_of_template.swift`
+    ///     - plugins: The plugins to use while loading the manifest.
     /// - Returns: Loaded `TuistScaffold.Template`
-    func loadTemplate(at path: AbsolutePath) throws -> TuistGraph.Template
+    func loadTemplate(at path: AbsolutePath, plugins: Plugins) throws -> TuistGraph.Template
 }
 
 public class TemplateLoader: TemplateLoading {
@@ -25,8 +25,8 @@ public class TemplateLoader: TemplateLoading {
         self.manifestLoader = manifestLoader
     }
 
-    public func loadTemplate(at path: AbsolutePath) throws -> TuistGraph.Template {
-        let template = try manifestLoader.loadTemplate(at: path)
+    public func loadTemplate(at path: AbsolutePath, plugins: Plugins) throws -> TuistGraph.Template {
+        let template = try manifestLoader.loadTemplate(at: path, plugins: plugins)
         let generatorPaths = GeneratorPaths(manifestDirectory: path)
         return try TuistGraph.Template.from(manifest: template,
                                             generatorPaths: generatorPaths)
@@ -57,9 +57,10 @@ extension TuistGraph.Template.Attribute {
 }
 
 extension TuistGraph.Template.Contents {
-    static func from(manifest: ProjectDescription.Template.Contents,
-                     generatorPaths: GeneratorPaths) throws -> TuistGraph.Template.Contents
-    {
+    static func from(
+        manifest: ProjectDescription.Template.Contents,
+        generatorPaths: GeneratorPaths
+    ) throws -> TuistGraph.Template.Contents {
         switch manifest {
         case let .string(contents):
             return .string(contents)

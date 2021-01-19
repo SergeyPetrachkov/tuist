@@ -5,6 +5,7 @@ import TuistCore
 import TuistGenerator
 import TuistLinting
 import TuistLoader
+import TuistPlugin
 import TuistSupport
 
 enum LintCodeServiceError: FatalError, Equatable {
@@ -41,17 +42,21 @@ final class LintCodeService {
     private let codeLinter: CodeLinting
     private let graphLoader: GraphLoading
     private let manifestLoading: ManifestLoading
+    private let pluginService: PluginServicing
 
-    init(rootDirectoryLocator: RootDirectoryLocating = RootDirectoryLocator(),
-         codeLinter: CodeLinting = CodeLinter(),
-         manifestLoading: ManifestLoading = ManifestLoader(),
-         graphLoader: GraphLoading = GraphLoader(modelLoader: GeneratorModelLoader(manifestLoader: ManifestLoader(),
-                                                                                   manifestLinter: AnyManifestLinter())))
-    {
+    init(
+        rootDirectoryLocator: RootDirectoryLocating = RootDirectoryLocator(),
+        codeLinter: CodeLinting = CodeLinter(),
+        manifestLoading: ManifestLoading = ManifestLoader(),
+        graphLoader: GraphLoading = GraphLoader(modelLoader: GeneratorModelLoader(manifestLoader: ManifestLoader(),
+                                                                                  manifestLinter: AnyManifestLinter())),
+        pluginService: PluginServicing = PluginService()
+    ) {
         self.rootDirectoryLocator = rootDirectoryLocator
         self.codeLinter = codeLinter
         self.manifestLoading = manifestLoading
         self.graphLoader = graphLoader
+        self.pluginService = pluginService
     }
 
     func run(path: String?, targetName: String?) throws {
@@ -85,11 +90,13 @@ final class LintCodeService {
         logger.notice("Loading the dependency graph")
         if manifests.contains(.workspace) {
             logger.notice("Loading workspace at \(path.pathString)")
-            let graph = try graphLoader.loadWorkspace(path: path)
+            let plugins = try pluginService.loadPlugins(at: path)
+            let graph = try graphLoader.loadWorkspace(path: path, plugins: plugins)
             return graph
         } else if manifests.contains(.project) {
             logger.notice("Loading project at \(path.pathString)")
-            let (graph, _) = try graphLoader.loadProject(path: path)
+            let plugins = try pluginService.loadPlugins(at: path)
+            let (graph, _) = try graphLoader.loadProject(path: path, plugins: plugins)
             return graph
         } else {
             throw LintCodeServiceError.manifestNotFound(path)

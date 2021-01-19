@@ -2,6 +2,7 @@ import Foundation
 import GraphViz
 import TSCBasic
 import TuistGenerator
+import TuistGraph
 
 final class MockGraphVizGenerator: GraphVizGenerating {
     var generateProjectArgs: [AbsolutePath] = []
@@ -9,12 +10,12 @@ final class MockGraphVizGenerator: GraphVizGenerating {
     var generateProjectStub = GraphViz.Graph()
     var generateWorkspaceStub = GraphViz.Graph()
 
-    func generateProject(at path: AbsolutePath, skipTestTargets _: Bool, skipExternalDependencies _: Bool) throws -> GraphViz.Graph {
+    func generateProject(at path: AbsolutePath, skipTestTargets _: Bool, skipExternalDependencies _: Bool, plugins _: Plugins) throws -> GraphViz.Graph {
         generateProjectArgs.append(path)
         return generateProjectStub
     }
 
-    func generateWorkspace(at path: AbsolutePath, skipTestTargets _: Bool, skipExternalDependencies _: Bool) throws -> GraphViz.Graph {
+    func generateWorkspace(at path: AbsolutePath, skipTestTargets _: Bool, skipExternalDependencies _: Bool, plugins _: Plugins) throws -> GraphViz.Graph {
         generateWorkspaceArgs.append(path)
         return generateWorkspaceStub
     }

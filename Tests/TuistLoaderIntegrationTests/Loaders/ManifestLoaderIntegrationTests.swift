@@ -36,6 +36,21 @@ final class ManifestLoaderTests: TuistTestCase {
         _ = try subject.loadConfig(at: temporaryPath)
     }
 
+    func test_loadPlugin() throws {
+        // Given
+        let temporaryPath = try self.temporaryPath()
+        let content = """
+        import ProjectDescription
+        let plugin = Plugin(name: "TestPlugin")
+        """
+
+        let manifestPath = temporaryPath.appending(component: Manifest.plugin.fileName(temporaryPath))
+        try content.write(to: manifestPath.url, atomically: true, encoding: .utf8)
+
+        // When
+        _ = try subject.loadPlugin(at: temporaryPath)
+    }
+
     func test_loadProject() throws {
         // Given
         let temporaryPath = try self.temporaryPath()
@@ -50,7 +65,7 @@ final class ManifestLoaderTests: TuistTestCase {
                           encoding: .utf8)
 
         // When
-        let got = try subject.loadProject(at: temporaryPath)
+        let got = try subject.loadProject(at: temporaryPath, plugins: .none)
 
         // Then
         XCTAssertEqual(got.name, "tuist")
@@ -70,7 +85,7 @@ final class ManifestLoaderTests: TuistTestCase {
                           encoding: .utf8)
 
         // When
-        let got = try subject.loadWorkspace(at: temporaryPath)
+        let got = try subject.loadWorkspace(at: temporaryPath, plugins: .none)
 
         // Then
         XCTAssertEqual(got.name, "tuist")
@@ -92,7 +107,7 @@ final class ManifestLoaderTests: TuistTestCase {
                           encoding: .utf8)
 
         // When
-        let got = try subject.loadSetup(at: temporaryPath)
+        let got = try subject.loadSetup(at: temporaryPath, plugins: .none)
 
         // Then
         let customUp = got.first as? UpCustom
@@ -119,7 +134,7 @@ final class ManifestLoaderTests: TuistTestCase {
                           encoding: .utf8)
 
         // When
-        let got = try subject.loadTemplate(at: temporaryPath)
+        let got = try subject.loadTemplate(at: temporaryPath, plugins: .none)
 
         // Then
         XCTAssertEqual(got.description, "Template description")
@@ -143,7 +158,7 @@ final class ManifestLoaderTests: TuistTestCase {
                           encoding: .utf8)
 
         // When
-        let got = try subject.loadTemplate(at: temporaryPath)
+        let got = try subject.loadTemplate(at: temporaryPath, plugins: .none)
 
         // Then
         XCTAssertEqual(got.description, "Template description")
@@ -164,14 +179,14 @@ final class ManifestLoaderTests: TuistTestCase {
 
         // When / Then
         XCTAssertThrowsError(
-            try subject.loadProject(at: temporaryPath)
+            try subject.loadProject(at: temporaryPath, plugins: .none)
         )
     }
 
     func test_load_missingManifest() throws {
         let temporaryPath = try self.temporaryPath()
         XCTAssertThrowsError(
-            try subject.loadProject(at: temporaryPath)
+            try subject.loadProject(at: temporaryPath, plugins: .none)
         ) { error in
             XCTAssertEqual(error as? ManifestLoaderError, ManifestLoaderError.manifestNotFound(.project, temporaryPath))
         }

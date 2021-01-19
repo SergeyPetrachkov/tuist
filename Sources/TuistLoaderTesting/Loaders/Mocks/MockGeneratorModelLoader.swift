@@ -17,11 +17,11 @@ public class MockGeneratorModelLoader: GeneratorModelLoading {
 
     // MARK: - GeneratorModelLoading
 
-    public func loadProject(at path: AbsolutePath) throws -> Project {
+    public func loadProject(at path: AbsolutePath, plugins _: Plugins) throws -> Project {
         try projects[path.pathString]!(path)
     }
 
-    public func loadWorkspace(at path: AbsolutePath) throws -> Workspace {
+    public func loadWorkspace(at path: AbsolutePath, plugins _: Plugins) throws -> Workspace {
         try workspaces[path.pathString]!(path)
     }
 
@@ -47,7 +47,7 @@ public class MockGeneratorModelLoader: GeneratorModelLoading {
         configs[basePath.appending(component: path).pathString] = loadClosure
     }
 
-    public func mockPlugin(_ path: String = "", loadClosure: @escaping (AbsolutePath) throws -> Plugin) {
-        plugins[path] = loadClosure
+    public func mockPlugin(_ path: String?, loadClosure: @escaping (AbsolutePath) throws -> Plugin) {
+        plugins[path ?? basePath.pathString] = loadClosure
     }
 }

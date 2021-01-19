@@ -2,6 +2,7 @@ import TSCBasic
 import TuistCore
 import TuistGraph
 import TuistLoader
+import TuistPlugin
 import TuistScaffold
 import TuistSupport
 
@@ -33,14 +34,18 @@ class ScaffoldService {
     private let templateLoader: TemplateLoading
     private let templatesDirectoryLocator: TemplatesDirectoryLocating
     private let templateGenerator: TemplateGenerating
+    private let pluginService: PluginServicing
 
-    init(templateLoader: TemplateLoading = TemplateLoader(),
-         templatesDirectoryLocator: TemplatesDirectoryLocating = TemplatesDirectoryLocator(),
-         templateGenerator: TemplateGenerating = TemplateGenerator())
-    {
+    init(
+        templateLoader: TemplateLoading = TemplateLoader(),
+        templatesDirectoryLocator: TemplatesDirectoryLocating = TemplatesDirectoryLocator(),
+        templateGenerator: TemplateGenerating = TemplateGenerator(),
+        pluginService: PluginServicing = PluginService()
+    ) {
         self.templateLoader = templateLoader
         self.templatesDirectoryLocator = templatesDirectoryLocator
         self.templateGenerator = templateGenerator
+        self.pluginService = pluginService
     }
 
     func loadTemplateOptions(templateName: String,
@@ -52,8 +57,8 @@ class ScaffoldService {
 
         let templateDirectory = try self.templateDirectory(templateDirectories: directories,
                                                            template: templateName)
-
-        let template = try templateLoader.loadTemplate(at: templateDirectory)
+        let plugins = try pluginService.loadPlugins(at: path)
+        let template = try templateLoader.loadTemplate(at: templateDirectory, plugins: plugins)
 
         return template.attributes.reduce(into: (required: [], optional: [])) { currentValue, attribute in
             switch attribute {
@@ -77,7 +82,8 @@ class ScaffoldService {
         let templateDirectory = try self.templateDirectory(templateDirectories: templateDirectories,
                                                            template: templateName)
 
-        let template = try templateLoader.loadTemplate(at: templateDirectory)
+        let plugins = try pluginService.loadPlugins(at: path)
+        let template = try templateLoader.loadTemplate(at: templateDirectory, plugins: plugins)
 
         let parsedAttributes = try parseAttributes(requiredTemplateOptions: requiredTemplateOptions,
                                                    optionalTemplateOptions: optionalTemplateOptions,

@@ -26,14 +26,14 @@ public class CachedModelLoader: GeneratorModelLoading {
         self.plugins = plugins
     }
 
-    public func loadProject(at path: AbsolutePath) throws -> Project {
+    public func loadProject(at path: AbsolutePath, plugins _: Plugins) throws -> Project {
         guard let project = projects[path] else {
             throw ManifestLoaderError.manifestNotFound(.project, path)
         }
         return project
     }
 
-    public func loadWorkspace(at path: AbsolutePath) throws -> Workspace {
+    public func loadWorkspace(at path: AbsolutePath, plugins _: Plugins) throws -> Workspace {
         guard let workspace = workspaces[path] else {
             throw ManifestLoaderError.manifestNotFound(.workspace, path)
         }

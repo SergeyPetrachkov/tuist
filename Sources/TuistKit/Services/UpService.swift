@@ -1,6 +1,7 @@
 import TSCBasic
 import TuistGenerator
 import TuistLoader
+import TuistPlugin
 import TuistSupport
 
 final class UpService {
@@ -9,15 +10,24 @@ final class UpService {
     /// Instance to load the setup manifest and perform the project setup.
     private let setupLoader: SetupLoading
 
+    /// Instance to a plugin service used to load plugins.
+    private let pluginService: PluginServicing
+
     // MARK: - Init
 
-    init(setupLoader: SetupLoading = SetupLoader()) {
+    init(
+        setupLoader: SetupLoading = SetupLoader(),
+        pluginService: PluginServicing = PluginService()
+    ) {
         self.setupLoader = setupLoader
+        self.pluginService = pluginService
     }
 
     func run(path: String?) throws {
         let path = self.path(path)
-        try setupLoader.meet(at: path)
+
+        let plugins = try pluginService.loadPlugins(at: path)
+        try setupLoader.meet(at: path, plugins: plugins)
     }
 
     // MARK: - Fileprivate

@@ -301,7 +301,7 @@ final class MultipleConfigurationsIntegrationTests: TuistUnitTestCase {
         let linter = GraphLinter()
         let graphLoader = GraphLoader(modelLoader: modelLoader)
 
-        let graph = try graphLoader.loadWorkspace(path: temporaryPath)
+        let graph = try graphLoader.loadWorkspace(path: temporaryPath, plugins: .none)
         let valueGraph = ValueGraph(graph: graph)
         let graphTraverser = ValueGraphTraverser(graph: valueGraph)
         try linter.lint(graphTraverser: graphTraverser).printAndThrowIfNeeded()

@@ -4,27 +4,30 @@ import TuistGraph
 
 /// Entity responsible for providing generator models
 ///
-/// Assumptions:
-///   - TuistGenerator creates a graph of Project dependencies
-///   - The projects are associated with unique paths
-///   - Each path only contains one Project
-///   - Whenever a dependency is encountered referencing another path,
+/// - Assumptions:
+///     - TuistGenerator creates a graph of Project dependencies
+///     - The projects are associated with unique paths
+///     - Each path only contains one Project
+///     - Whenever a dependency is encountered referencing another path,
 ///     this entity is consulted again to load the model at that path
 public protocol GeneratorModelLoading {
     /// Load a Project model at the specified path
     ///
     /// - Parameters:
     ///   - path: The absolute path for the project model to load.
+    ///   - plugins: The plugins to load alongside the project.
     /// - Returns: The Project loaded from the specified path
     /// - Throws: Error encountered during the loading process (e.g. Missing project)
-    func loadProject(at path: AbsolutePath) throws -> Project
+    func loadProject(at path: AbsolutePath, plugins: Plugins) throws -> Project
 
     /// Load a Workspace model at the specified path
     ///
-    /// - Parameter path: The absolute path for the workspace model to load
+    /// - Parameters:
+    ///   - path: The absolute path for the workspace model to load
+    ///   - plugins: The plugins to load alongside the project.
     /// - Returns: The workspace loaded from the specified path
     /// - Throws: Error encountered during the loading process (e.g. Missing workspace)
-    func loadWorkspace(at path: AbsolutePath) throws -> Workspace
+    func loadWorkspace(at path: AbsolutePath, plugins: Plugins) throws -> Workspace
 
     /// Load a Config model at the specified path
     ///

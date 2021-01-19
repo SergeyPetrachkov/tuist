@@ -2,6 +2,7 @@ import TSCBasic
 import TuistCore
 import TuistGraph
 import TuistLoader
+import TuistPlugin
 import TuistScaffold
 import TuistSupport
 
@@ -42,14 +43,18 @@ class InitService {
     private let templateLoader: TemplateLoading
     private let templatesDirectoryLocator: TemplatesDirectoryLocating
     private let templateGenerator: TemplateGenerating
+    private let pluginService: PluginServicing
 
-    init(templateLoader: TemplateLoading = TemplateLoader(),
-         templatesDirectoryLocator: TemplatesDirectoryLocating = TemplatesDirectoryLocator(),
-         templateGenerator: TemplateGenerating = TemplateGenerator())
-    {
+    init(
+        templateLoader: TemplateLoading = TemplateLoader(),
+        templatesDirectoryLocator: TemplatesDirectoryLocating = TemplatesDirectoryLocator(),
+        templateGenerator: TemplateGenerating = TemplateGenerator(),
+        pluginService: PluginServicing = PluginService()
+    ) {
         self.templateLoader = templateLoader
         self.templatesDirectoryLocator = templatesDirectoryLocator
         self.templateGenerator = templateGenerator
+        self.pluginService = pluginService
     }
 
     func loadTemplateOptions(templateName: String,
@@ -62,7 +67,8 @@ class InitService {
         let templateDirectory = try self.templateDirectory(templateDirectories: directories,
                                                            template: templateName)
 
-        let template = try templateLoader.loadTemplate(at: templateDirectory)
+        let plugins = try pluginService.loadPlugins(at: path)
+        let template = try templateLoader.loadTemplate(at: templateDirectory, plugins: plugins)
 
         return template.attributes.reduce(into: (required: [], optional: [])) { currentValue, attribute in
             switch attribute {
@@ -86,12 +92,14 @@ class InitService {
         let name = try self.name(name, path: path)
         try verifyDirectoryIsEmpty(path: path)
 
+        let plugins = try pluginService.loadPlugins(at: path)
         let directories = try templatesDirectoryLocator.templateDirectories(at: path)
+
         if let templateName = templateName {
             guard
                 let templateDirectory = directories.first(where: { $0.basename == templateName })
             else { throw InitServiceError.templateNotFound(templateName) }
-            let template = try templateLoader.loadTemplate(at: templateDirectory)
+            let template = try templateLoader.loadTemplate(at: templateDirectory, plugins: plugins)
             let parsedAttributes = try parseAttributes(name: name,
                                                        platform: platform,
                                                        requiredTemplateOptions: requiredTemplateOptions,
@@ -105,7 +113,7 @@ class InitService {
             guard
                 let templateDirectory = directories.first(where: { $0.basename == "default" })
             else { throw InitServiceError.templateNotFound("default") }
-            let template = try templateLoader.loadTemplate(at: templateDirectory)
+            let template = try templateLoader.loadTemplate(at: templateDirectory, plugins: plugins)
             try templateGenerator.generate(template: template,
                                            to: path,
                                            attributes: ["name": name, "platform": platform.caseValue])

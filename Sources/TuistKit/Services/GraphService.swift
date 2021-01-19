@@ -4,6 +4,7 @@ import GraphViz
 import TSCBasic
 import TuistGenerator
 import TuistLoader
+import TuistPlugin
 import TuistSupport
 
 final class GraphService {
@@ -13,11 +14,18 @@ final class GraphService {
     /// Manifest loader.
     private let manifestLoader: ManifestLoading
 
-    init(graphVizGenerator: GraphVizGenerating = GraphVizGenerator(modelLoader: GeneratorModelLoader(manifestLoader: ManifestLoader(),
-                                                                                                     manifestLinter: ManifestLinter())),
-    manifestLoader: ManifestLoading = ManifestLoader()) {
+    /// Plugin service used to load plugins
+    private let pluginService: PluginServicing
+
+    init(
+        graphVizGenerator: GraphVizGenerating = GraphVizGenerator(modelLoader: GeneratorModelLoader(manifestLoader: ManifestLoader(),
+                                                                                                    manifestLinter: ManifestLinter())),
+        manifestLoader: ManifestLoading = ManifestLoader(),
+        pluginService: PluginServicing = PluginService()
+    ) {
         self.graphVizGenerator = graphVizGenerator
         self.manifestLoader = manifestLoader
+        self.pluginService = pluginService
     }
 
     func run(format: GraphFormat,
@@ -26,10 +34,16 @@ final class GraphService {
              skipExternalDependencies: Bool,
              path: String?) throws
     {
-        let graphVizGraph = try graphVizGenerator.generate(at: FileHandler.shared.currentPath,
-                                                           manifestLoader: manifestLoader,
-                                                           skipTestTargets: skipTestTargets,
-                                                           skipExternalDependencies: skipExternalDependencies)
+        let genPath = FileHandler.shared.currentPath
+        let plugins = try pluginService.loadPlugins(at: genPath)
+        let graphVizGraph = try graphVizGenerator.generate(
+            at: genPath,
+            manifestLoader: manifestLoader,
+            skipTestTargets: skipTestTargets,
+            skipExternalDependencies: skipExternalDependencies,
+            plugins: plugins
+        )
+
         let filePath = makeAbsolutePath(from: path).appending(component: "graph.\(format.rawValue)")
         if FileHandler.shared.exists(filePath) {
             logger.notice("Deleting existing graph at \(filePath.pathString)")

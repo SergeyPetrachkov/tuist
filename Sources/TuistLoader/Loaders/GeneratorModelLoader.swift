@@ -33,16 +33,17 @@ extension GeneratorModelLoader: GeneratorModelLoading {
     ///
     /// - Parameters:
     ///   - path: The absolute path for the project model to load.
+    ///   - plugins: The plugins to use while loading the project.
     /// - Returns: The Project loaded from the specified path
     /// - Throws: Error encountered during the loading process (e.g. Missing project)
-    public func loadProject(at path: AbsolutePath) throws -> TuistGraph.Project {
-        let manifest = try manifestLoader.loadProject(at: path)
+    public func loadProject(at path: AbsolutePath, plugins: Plugins) throws -> TuistGraph.Project {
+        let manifest = try manifestLoader.loadProject(at: path, plugins: plugins)
         try manifestLinter.lint(project: manifest).printAndThrowIfNeeded()
         return try convert(manifest: manifest, path: path)
     }
 
-    public func loadWorkspace(at path: AbsolutePath) throws -> TuistGraph.Workspace {
-        let manifest = try manifestLoader.loadWorkspace(at: path)
+    public func loadWorkspace(at path: AbsolutePath, plugins: Plugins) throws -> TuistGraph.Workspace {
+        let manifest = try manifestLoader.loadWorkspace(at: path, plugins: plugins)
         return try convert(manifest: manifest, path: path)
     }
 
@@ -53,7 +54,7 @@ extension GeneratorModelLoader: GeneratorModelLoading {
 
             if FileHandler.shared.exists(configPath) {
                 let manifest = try manifestLoader.loadConfig(at: configPath.parentDirectory)
-                return try TuistGraph.Config.from(manifest: manifest, at: configPath)
+                return try convert(manifest: manifest, path: configPath)
             }
         }
 
@@ -67,14 +68,15 @@ extension GeneratorModelLoader: GeneratorModelLoading {
                 continue
             }
             let manifest = try manifestLoader.loadConfig(at: configPath.parentDirectory)
-            return try TuistGraph.Config.from(manifest: manifest, at: configPath)
+            return try convert(manifest: manifest, path: configPath)
         }
 
         return TuistGraph.Config.default
     }
 
-    public func loadPlugin(at _: AbsolutePath) throws -> TuistGraph.Plugin {
-        Plugin(name: "TODO")
+    public func loadPlugin(at path: AbsolutePath) throws -> TuistGraph.Plugin {
+        let plugin = try manifestLoader.loadPlugin(at: path)
+        return try convert(manifest: plugin)
     }
 }
 
@@ -91,5 +93,13 @@ extension GeneratorModelLoader: ManifestModelConverting {
                                                       generatorPaths: generatorPaths,
                                                       manifestLoader: manifestLoader)
         return workspace
+    }
+
+    public func convert(manifest: ProjectDescription.Config, path: AbsolutePath) throws -> TuistGraph.Config {
+        try TuistGraph.Config.from(manifest: manifest, at: path)
+    }
+
+    public func convert(manifest: ProjectDescription.Plugin) throws -> TuistGraph.Plugin {
+        try TuistGraph.Plugin.from(manifest: manifest)
     }
 }
