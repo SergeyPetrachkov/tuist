@@ -7,6 +7,8 @@ Please, check out guidelines: https://keepachangelog.com/en/1.0.0/
 ### Added
 
 - Disable SwiftFormat in the generated synthesized interface for resources [#2328]((https://github.com/tuist/tuist/pull/2328) by [@natanrolnik](https://github.com/natanrolnik).
+- Send Tuist usage analytics event to https://stats.tuist.io/ [#2331]((https://github.com/tuist/tuist/pull/2331) by [@andreacipriani](https://github.com/andreacipriani).
+
 
 ### Fixed
 
