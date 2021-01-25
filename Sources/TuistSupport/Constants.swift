@@ -53,6 +53,7 @@ public enum Constants {
         public static let queueDirectory = "TUIST_QUEUE_DIRECTORY"
         public static let cloudToken = "TUIST_CLOUD_TOKEN"
         public static let cacheManifests = "TUIST_CACHE_MANIFESTS"
+        public static let statsOptOut = "TUIST_STATS_OPT_OUT"
     }
 
     public enum GoogleCloud {
